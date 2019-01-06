@@ -10,12 +10,16 @@
 
 #include "index.h" //Our HTML webpage contents with javascripts
 
-#define LED 2  //On board LED
+#define LED 0  //On board LED
 
+#define CLOSED_POS 180
+#define OPEN_POS 60
+#define SERVO_TIMEMULTI 5
 //SSID and Password of your WiFi router
 const char* ssid = "Flash";
 const char* password = "nashwa47";
 
+int adc = -1;
 ESP8266WebServer server(80); //Server on port 80
 
 Servo _servo;
@@ -29,8 +33,8 @@ void handleRoot() {
 }
 
 void handleADC() {
-  int a = analogRead(A0);
-  String adcValue = String(a);
+   adc = analogRead(A0);
+  String adcValue = String(adc);
 
   server.send(200, "text/plane", adcValue); //Send ADC value only to client ajax request
 }
@@ -39,14 +43,12 @@ void handleServo() {
 
   String s_state = server.arg("SERVOstate"); //Refer  xhttp.open("GET", "setLED?LEDstate="+led, true);
 
-  String posValue = String(pos);
-
-  _servo.write(pos);
-  Serial.println(pos);
-  pos += 15;
-  delay(1500);
-  _servo.write(pos);
-  Serial.println(pos);
+  _servo.write(OPEN_POS);
+  Serial.println(OPEN_POS);
+  String posValue = String(CLOSED_POS);
+  delay(adc*SERVO_TIMEMULTI);
+  _servo.write(CLOSED_POS);
+  Serial.println(CLOSED_POS);
   server.send(200, "text/plane", posValue); //Send web page
 }
 
@@ -75,7 +77,7 @@ void setup(void) {
   Serial.begin(115200);
 
   _servo.attach(2);
-
+_servo.write(CLOSED_POS);
   WiFi.begin(ssid, password);     //Connect to your WiFi router
   Serial.println("");
 
